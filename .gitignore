@@ -1,0 +1,41 @@
+# 1. Python / virtualenv
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 2. Django ki generated files
+db.sqlite3
+media/
+staticfiles/
+
+# 3. Secrets
+.env
+.env.*
+
+# 4. Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# 5. Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log* 
+pnpm-debug.log* 
+*.log
+
+# 6. Editor
+.vscode/*
+.idea/
+.DS_Store
+
+# 7. User Guide
+user_guide/*

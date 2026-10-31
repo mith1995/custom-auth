@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif; color: #172033; background: #f8fafc; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input { font: inherit; }
+::selection { background: #dbeafe; color: #1d4ed8; }
+.auth-bg {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(99,102,241,.22), transparent 30%),
+    radial-gradient(circle at 80% 85%, rgba(14,165,233,.16), transparent 28%),
+    #0b1228;
+}
+.auth-grid {
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.input-focus { transition: border-color .2s, box-shadow .2s; }
+.input-focus:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,.12); }

@@ -1,0 +1,12 @@
+{% extends "authnest/email/base.html" %}
+{% block content %}
+  <h2>Nayi email confirm karein</h2>
+  <p>Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},</p>
+  <p>Aapne apne account ki email <strong>{{ new_email }}</strong> par badalne ki request ki hai. Confirm karne ke liye neeche button par click karein.</p>
+  <p>
+    <a href="{{ link }}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:6px;">
+      Email confirm karein
+    </a>
+  </p>
+  <p>Ye link {{ expires_in_hours }} ghante me expire ho jayega. Agar aapne ye request nahi ki, to is email ko ignore karein, aapki email nahi badlegi.</p>
+{% endblock %}

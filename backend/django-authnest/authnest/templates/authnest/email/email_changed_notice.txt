@@ -1,0 +1,5 @@
+Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},
+
+Aapke account ki email {{ old_email }} se badalkar {{ new_email }} kar di gayi hai.
+
+Agar ye badlav aapne nahi kiya, to turant "Forgot password" se password reset karein aur support se sampark karein.
