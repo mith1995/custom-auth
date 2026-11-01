@@ -280,7 +280,7 @@ def test_delete_account_sends_a_goodbye_mail(auth_client, user, mailoutbox):
     assert len(mailoutbox) == 1
     assert mailoutbox[0].to == ["user@example.com"]
     assert mailoutbox[0].subject == "Your account has been deleted successfully."
-    assert "You will no longer be able to log in." in mailoutbox[0].body
+    assert "you can no longer log in" in mailoutbox[0].body
 
 
 def test_delete_account_clears_the_cookie_in_cookie_mode(auth_client):
@@ -334,7 +334,7 @@ def test_delete_account_is_permanent_when_soft_delete_is_off(auth_client, user, 
 
     assert response.status_code == 200
     assert not User.all_objects.filter(pk=user.pk).exists()
-    assert "Permanently." in mailoutbox[0].body
+    assert "permanently deleted" in mailoutbox[0].body
 
 
 def test_email_can_be_reused_after_a_permanent_delete(auth_client, api_client, settings):
