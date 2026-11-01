@@ -80,9 +80,9 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        message = "Account ban gaya."
+        message = "Your account has been created successfully."
         if user.email and authnest_settings.REQUIRE_EMAIL_VERIFICATION:
-            message += "Verification link aapke email bhej diya gaya hai"
+            message += "A verification link has been sent to your email address."
 
         return Response(
             {"detail":  message, "user": {"id": user.pk, "email": user.email, "phone": user.phone}},
@@ -102,7 +102,7 @@ class VerifyEmailView(APIView):
             user.is_email_verified = True
             user.save(update_fields=["is_email_verified"])
 
-        return Response({"detail": "Email verify ho gaya."})
+        return Response({"detail": "Your email address has been verified successfully."})
 
 class ResendVerificationView(APIView):
     permission_classes = [AllowAny]
@@ -118,11 +118,11 @@ class ResendVerificationView(APIView):
             try:
                 send_verification_email(user)
             except Exception:
-                logger.exception("Resend verification fail hua (user id=%s)", user.pk)
+                logger.exception("Failed to resend verification email (user ID=%s).", user.pk)
 
         # Email exist kare ya na kare, response hamesha same
         return Response(
-            {"detail": "Agar ye email registered hai aur verify nahi hua, to naya link bhej diya gaya hai."}
+            {"detail": "If this email address is registered and has not been verified, a new verification link has been sent."}
         )
 
 class LoginView(APIView):
@@ -152,7 +152,7 @@ class RefreshView(APIView):
 
     def _invalid(self):
         response = Response(
-            {"detail": "Session expire ho gaya, dobara login karien.", "code": "token_invalid"},
+            {"detail": "Your session has expired. Please log in again.", "code": "token_invalid"},
             status=status.HTTP_401_UNAUTHORIZED
         )
         if authnest_settings.REFRESH_TOKEN_IN_COOKIE:
@@ -194,7 +194,7 @@ class LogoutView(APIView):
             try:
                 AuthnestRefreshToken(raw).blacklist()
             except TokenError:
-                pass # token pehle se invalid hai, logout me kuch karne ko nahi
+                pass # The token is already invalid, so there is nothing to do during logout.
 
         response = Response({"detail": "Logout ho gaya."})
         if authnest_settings.REFRESH_TOKEN_IN_COOKIE:
@@ -215,11 +215,11 @@ class ForgotPasswordView(APIView):
             try:
                 send_password_reset_email(user)
             except Exception:
-                logger.exception("Reset email fail hua (user id=%s)", user.pk)
+                logger.exception("Failed to send password reset email (user ID=%s).", user.pk)
 
         # Email exist kare ya na kare, response hamesha same
         return Response(
-            {"detail": "Agar ye email registered hai, to password reset ka link bhej diya gaya hai."}
+            {"detail": "If this email address is registered, a password reset link has been sent."}
         )
 
 
@@ -240,10 +240,10 @@ class ResetPasswordView(APIView):
         try:
             send_password_changed_email(user)
         except Exception:
-            logger.exception("Password changed email fail hua (user id=%s)", user.pk)
+            logger.exception("Failed to send password change notification email (user ID=%s).", user.pk)
 
         # Auto-login nahi, sirf message
-        return Response({"detail": "Password reset ho gaya. Ab naye password se login karein."})
+        return Response({"detail": "Your password has been reset successfully. Please log in with your new password."})
 
 
 class ChangePasswordView(APIView):
@@ -266,10 +266,10 @@ class ChangePasswordView(APIView):
 
             send_password_changed_email(user)
         except Exception:
-            logger.exception("Password changed email fail hua (user id=%s)", user.pk)
+            logger.exception("Failed to send password change notification email (user ID=%s).", user.pk)
 
         response = Response(
-            {"detail": "Password badal gaya. Dobara login karein."}
+            {"detail": "Your password has been changed successfully. Please log in again."}
         )
         if authnest_settings.REFRESH_TOKEN_IN_COOKIE:
             delete_refresh_cookie(response)
@@ -309,14 +309,14 @@ class EmailChangeView(APIView):
         try:
             send_email_change_email(request.user, serializer.validated_data["new_email"])
         except Exception:
-            logger.exception("Email change link fail hua (user id=%s)", request.user.pk)
+            logger.exception("Failed to send email change confirmation link (user ID=%s).", request.user.pk)
             return Response(
-                {"detail": "Email nahi bheji ja saki, thodi der baad dobara koshish karein."},
+                {"detail": "Unable to send the email. Please try again later."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         return Response(
-            {"detail": "Nayi email par confirm link bhej diya gaya hai. Link kholne par hi email badlegi."}
+            {"detail": "A confirmation link has been sent to your new email address. Your email address will be changed only after you open the link."}
         )
 
 
@@ -338,15 +338,15 @@ class ConfirmEmailChangeView(APIView):
                 user.is_email_verified = True
                 user.save(update_fields=["email", "is_email_verified"])
         except IntegrityError:
-            raise ValidationError({"token": "Ye email ab kisi aur account me use ho rahi hai."})
+            raise ValidationError({"token": "This email address is already in use by another account."})
 
         if old_email:
             try:
                 send_email_changed_notice(user, old_email, new_email)
             except Exception:
-                logger.exception("Email changed notice fail hua (user id=%s)", user.pk)
+                logger.exception("Failed to send email change notification (user ID=%s).", user.pk)
 
-        return Response({"detail": "Email badal gayi.", "email": user.email})
+        return Response({"detail": "Your email address has been changed successfully.", "email": user.email})
 
 class DeleteAccountView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -369,9 +369,9 @@ class DeleteAccountView(APIView):
             try:
                 send_account_deleted_email(user, email)
             except Exception:
-                logger.exception("Account deleted email fail hua (email=%s)", email)
+                logger.exception("Failed to send account deletion notification email (email=%s).", email)
 
-        response = Response({"detail": "Aapka account delete ho gaya hai."})
+        response = Response({"detail": "Your account has been deleted successfully."})
         if authnest_settings.REFRESH_TOKEN_IN_COOKIE:
             delete_refresh_cookie(response)
         return response

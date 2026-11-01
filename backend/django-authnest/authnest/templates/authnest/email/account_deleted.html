@@ -1,11 +1,11 @@
 {% extends "authnest/email/base.html" %}
 {% block content %}
-  <h2>Account delete ho gaya</h2>
+  <h2>Account deleted successfully.</h2>
   <p>Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},</p>
   {% if permanent %}
-    <p>Aapka account aur usse jura data hamesha ke liye delete kar diya gaya hai.</p>
+    <p>Your account and all associated data have been permanently deleted.</p>
   {% else %}
-    <p>Aapka account delete kar diya gaya hai aur ab login nahi ho sakega. Agar aap wapas aana chahte hain, to support se sampark karein.</p>
+    <p>Your account has been deleted, and you can no longer log in. If you wish to return, please contact support.</p>
   {% endif %}
-  <p>Agar ye request aapne nahi ki thi, to turant support se sampark karein.</p>
+  <p>If you did not make this request, please contact support immediately.</p>
 {% endblock %}

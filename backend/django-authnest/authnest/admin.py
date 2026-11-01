@@ -31,22 +31,22 @@ class AdminUserCreationForm(BaseUserCreationForm):
 
     def clean_email(self):
         email = normalize_email(self.cleaned_data.get("email"))
-        # all_objects: soft-deleted user ki email bhi reserved hai
+        # all_objects: The email address of a soft-deleted user is also reserved.
         if email and User.all_objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Is email se account pehle se maujood hai.")
+            raise forms.ValidationError("An account with this email already exists.")
         return email
 
     def clean_phone(self):
         phone = normalize_phone(self.cleaned_data.get("phone"))
         if phone and User.all_objects.filter(phone=phone).exists():
-            raise forms.ValidationError("Is phone number se account pehle se maujood hai.")
+            raise forms.ValidationError("An account with this phone number already exists.")
         return phone
 
     def clean(self):
         cleaned = super().clean()
         if not cleaned.get("email") and not cleaned.get("phone"):
             raise forms.ValidationError(
-                "Email ya phone mein se kam se kam ek dena zaroori hai."
+                "At least one of the email or phone number is required."
             )
         return cleaned
 
@@ -115,7 +115,7 @@ class UserAdmin(DjangoUserAdmin):
         ]
 
     def has_add_permission(self, request):
-        # Users registration ya createsuperuser se bante hain, admin me nahi
+        # Users can only be created through registration or the createsuperuser command, not through the admin panel.
         return False
 
     add_form = AdminUserCreationForm
@@ -140,4 +140,4 @@ class UserAdmin(DjangoUserAdmin):
     @admin.action(description="Restore selected users")
     def restore_users(self, request, queryset):
         count = queryset.deleted().restore()
-        self.message_user(request, f"{count} user restore ho gaye.", messages.SUCCESS)
+        self.message_user(request, f"{count} user have been restored.", messages.SUCCESS)

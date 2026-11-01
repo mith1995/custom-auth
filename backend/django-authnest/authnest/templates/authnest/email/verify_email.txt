@@ -1,7 +1,8 @@
-Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},
+Hello{% if user.first_name %} {{ user.first_name }}{% endif %},
 
-Account chalu karne ke liye ye link kholein:
+To activate your account, open the following link:
 {{ link|safe }}
 
-Ye link {{ expires_in_hours }} ghante me expire ho jayega.
-Agar aapne account nahi banaya, to is email ko ignore karein.
+This link will expire in {{ expires_in_hours }} hours.
+
+If you did not create an account, please ignore this email.

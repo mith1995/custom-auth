@@ -17,13 +17,13 @@ class UserQuerySet(models.QuerySet):
         if not authnest_settings.SOFT_DELETE:
             return self.hard_delete()
 
-        # Jo rows pehle se soft-deleted hain unke pk abhi nikalo (update se pehle)
+        # Retrieve the primary keys of rows that are already soft-deleted (before performing the update).
         already_deleted_pks = list(self.deleted().values_list("pk", flat=True))
 
         # Alive rows soft delete
         soft_count = self.alive().update(deleted_at=timezone.now(), is_active=False)
 
-        # Pehle se soft-deleted rows asli me delete
+        # Permanently delete rows that are already soft-deleted.
         total, per_model = 0, {}
         if already_deleted_pks:
             total, per_model = self.model.all_objects.filter(
@@ -68,7 +68,7 @@ class UserManager(BaseUserManager.from_queryset(UserQuerySet)):
         email = normalize_email(email)
         phone = normalize_phone(phone)
         if not email and not phone:
-            raise ValueError("Email ya phone mein se kam se kam ek zaroori hai")
+            raise ValueError("At least one of the email or phone number is required.")
 
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
@@ -90,9 +90,9 @@ class UserManager(BaseUserManager.from_queryset(UserQuerySet)):
         extra_fields.setdefault("is_email_verified", True)
 
         if extra_fields["is_staff"] is not True:
-            raise ValueError("Superuser ke liye is_staff=True zaroori hai.")
+            raise ValueError("is_staff=True is required for superusers.")
         if extra_fields["is_superuser"] is not True:
-            raise ValueError("Superuser ke liye is_superuser=True zaroori hai.")
+            raise ValueError("is_superuser=True is required for superusers.")
 
         return self.create_user(email=email, password=password, username=username, **extra_fields)
 

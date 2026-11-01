@@ -15,7 +15,7 @@ def make_email_verification_token(user):
     )
 
 def read_email_verification_token(token):
-    # Valid ho to payload dict, warna signing.BadSignature / SignatureExpired
+    # If valid, return the payload dictionary; otherwise, raise signing.BadSignature or SignatureExpired.
     return signing.loads(
         token,
         salt=EMAIL_VERIFY_SALT,
@@ -23,7 +23,7 @@ def read_email_verification_token(token):
     )
 
 class AuthnestRefreshToken(RefreshToken):
-    """Refresh token jiski lifetime AUTHnest settings se aati hai, SIMPLE_JWT se nahi."""
+    """The refresh token's lifetime is configured through AUTHNEST settings, not SIMPLE_JWT."""
 
     @property
     def lifetime(self):
@@ -42,7 +42,7 @@ def issue_tokens(user):
     return {"access": str(access), "refresh": str(refresh)}
 
 def password_fingerprint(user):
-    # Password hash ka ek hissa. Password badalte hi ye badal jata hai.
+    # A part of the password hash. It changes whenever the password is changed.
     return hashlib.sha256(user.password.encode()).hexdigest()[:20]
 
 def make_password_reset_token(user):
@@ -52,7 +52,7 @@ def make_password_reset_token(user):
     )
 
 def read_password_reset_token(token):
-    # Valid ho to payload dict, warna signing.BadSignature / SignatureExpired
+    # If valid, return the payload dictionary; otherwise, raise signing.BadSignature or SignatureExpired.
     return signing.loads(
         token,
         salt=PASSWORD_RESET_SALT,
@@ -60,7 +60,7 @@ def read_password_reset_token(token):
     )
 
 def blacklist_all_tokens(user):
-    # Lazy import: blacklist app ke models app-loading ke baad hi import ho sakte hain
+    # Lazy import: The blacklist app's models can only be imported after the app-loading process is complete.
     from rest_framework_simplejwt.token_blacklist.models import (
         BlacklistedToken,
         OutstandingToken,
@@ -76,7 +76,7 @@ def make_email_change_token(user, new_email):
     )
 
 def read_email_change_token(token):
-    # Valid ho to payload dict, warna signing.BadSignature / SignatureExpired
+    # If valid, return the payload dictionary; otherwise, raise signing.BadSignature or SignatureExpired.
     return signing.loads(
         token,
         salt=EMAIL_CHANGE_SALT,
