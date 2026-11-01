@@ -1,8 +1,10 @@
-Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},
+Hello{% if user.first_name %} {{ user.first_name }}{% endif %},
 
-Aapne apne account ki email {{ new_email }} par badalne ki request ki hai.
-Confirm karne ke liye ye link kholein:
+You have requested to change your account email address to {{ new_email }}.
+
+To confirm this change, open the following link:
 {{ link|safe }}
 
-Ye link {{ expires_in_hours }} ghante me expire ho jayega.
-Agar aapne ye request nahi ki, to is email ko ignore karein, aapki email nahi badlegi.
+This link will expire in {{ expires_in_hours }} hours.
+
+If you did not make this request, please ignore this email. Your email address will remain unchanged.

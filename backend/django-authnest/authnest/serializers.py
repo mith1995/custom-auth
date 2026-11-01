@@ -32,9 +32,9 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         email = normalize_email(value)
-        # all_objects: soft-deleted users ka email bhi reserved hai
+        # all_objects: Email addresses of soft-deleted users are also reserved.
         if email and User.all_objects.filter(email__iexact=email).exists():
-            raise serializers.ValidationError("Is email se account pehle se maujood hai")
+            raise serializers.ValidationError("An account with this email already exists.")
         return email
 
     def validate_phone(self, value):
@@ -45,26 +45,26 @@ class RegisterSerializer(serializers.Serializer):
             except DjangoValidationError as exc:
                 raise serializers.ValidationError(exc.messages)
             if User.all_objects.filter(phone=phone).exists():
-                raise serializers.ValidationError("Is phone number se account pehle se maujood hai")
+                raise serializers.ValidationError("An account with this phone number already exists.")
         return phone
 
     def validate(self, attrs):
         methods = list(authnest_settings.USER_LOGIN_METHODS)
 
-        # Jo identifier login method me nahi hai, use register me allow nahi
+        # Identifiers not enabled for login are not allowed during registration.
         for field in ("email", "phone"):
             if field not in methods and attrs.get(field):
                 raise serializers.ValidationError(
-                    {field: f"Registration me {field} allowed nahi hai."}
+                    {field: f"The {field} is not allowed during registration."}
                 )
 
         if len(methods) == 1:
             field = methods[0]
             if not attrs.get(field):
-                raise serializers.ValidationError({field: "Ye field zaroori hai."})
+                raise serializers.ValidationError({field: "This field is required."})
         elif not (attrs.get("email") or attrs.get("phone")):
             raise serializers.ValidationError(
-                "Email ya phone mein se kam se kam ek dena zaroori hai."
+                "At least one of the email or phone number is required."
             )
 
         # Django ke password validators, user ki info ke saath (similarity check ke liye)
@@ -93,15 +93,15 @@ class RegisterSerializer(serializers.Serializer):
                     last_name=validated_data.get("last_name", ""),
                 )
         except IntegrityError:
-            # Do requests ek saath aayi to check chook sakta hai, DB constraint pakad leta hai
-            raise serializers.ValidationError("Is email ya phone se account pehle se maujood hai.")
+            # If two requests arrive simultaneously, the check may fail to catch it, but the database constraint will prevent duplicates.
+            raise serializers.ValidationError("An account with this email or phone number already exists.")
 
         if user.email and authnest_settings.REQUIRE_EMAIL_VERIFICATION:
             try:
                 send_verification_email(user)
             except Exception:
-                # Email fail ho to bhi user ban chuka hai, resend endpoint se link mil jayega
-                logger.exception("Verification email fail hua (user id=%s)", user.pk)
+                # Even if the email fails, the user account is still created. You can resend the verification link using the resend endpoint.
+                logger.exception("Verification email failed (user ID=%s).", user.pk)
 
         return user
 
@@ -109,15 +109,15 @@ class VerifyEmailSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     def validate(self, attrs):
-        invalid = serializers.ValidationError({"token": "Link invalid ya expire ho gaya hai."})
+        invalid = serializers.ValidationError({"token": "The link is invalid or has expired."})
 
         try:
             payload = read_email_verification_token(attrs["token"])
-        except signing.BadSignature: #SignatureExpired bhi isi me aata hai
+        except signing.BadSignature: #SignatureExpired is also covered by this.
             raise invalid
 
         user = User.objects.filter(pk=payload.get("uid")).first()
-        # Email badal gayi ho (ya user delete ho gaya ho) to purana link kaam nahi karega
+        # The old link will no longer work if the email address has changed or the user has been deleted.
         if user is None or user.email != payload.get("email"):
             raise invalid
 
@@ -128,7 +128,7 @@ class ResendVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 class LoginSerializer(serializers.Serializer):
-    scope = "user" # field nahi, class attribute hai (admin wala isko badlega)
+    scope = "user" # It's a class attribute, not a field (the admin will modify it).
 
     identifier = serializers.CharField()
     password = serializers.CharField(
@@ -169,15 +169,15 @@ class ResetPasswordSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        invalid = serializers.ValidationError({"token": "Link invalid ya expire ho gaya hai."})
+        invalid = serializers.ValidationError({"token": "The link is invalid or has expired."})
 
         try:
             payload = read_password_reset_token(attrs["token"])
-        except signing.BadSignature:  # SignatureExpired bhi isi me aata hai
+        except signing.BadSignature:  # SignatureExpired is also handled by this.
             raise invalid
 
         user = User.objects.filter(pk=payload.get("uid"), is_active=True).first()
-        # Password badal chuka ho to fingerprint alag hoga, yani link pehle use ho chuka hai
+        # If the password has changed, the fingerprint will be different, indicating that the link has already been used.
         if user is None or payload.get("pwd") != password_fingerprint(user):
             raise invalid
 
@@ -201,7 +201,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_old_password(self, value):
         user = self.context["request"].user
         if not user.check_password(value):
-            raise serializers.ValidationError("Purana password galat hai.")
+            raise serializers.ValidationError("The current password is incorrect.")
         return value
 
     def validate(self, attrs):
@@ -209,7 +209,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
         if attrs["old_password"] == attrs["new_password"]:
             raise serializers.ValidationError(
-                {"new_password": "Naya password purane password jaisa nahi ho sakta."}
+                {"new_password": "The new password cannot be the same as the current password."}
             )
 
         try:
@@ -236,10 +236,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         today = date.today()
         if value > today:
             raise serializers.ValidationError(
-                "Janam tithi future ki nahi ho sakti"
+                "Date of birth cannot be in the future."
             )
         if today.year - value.year > 120:
-            raise serializers.ValidationError("janam tithi sahi nahi lag rahi.")
+            raise serializers.ValidationError("Invalid date of birth.")
         return value
 
     def validate_profile_picture(self, value):
@@ -248,7 +248,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         max_size = authnest_settings.PROFILE_PICTURE_MAX_SIZE
         if value.size > max_size:
             raise serializers.ValidationError(
-                f"Image {max_size / (1024 * 1024):g} MB se badi nahi ho sakti."
+                f"Image size cannot exceed {max_size / (1024 * 1024):g} MB"
             )
         return value
 
@@ -271,17 +271,17 @@ class EmailChangeSerializer(serializers.Serializer):
 
     def validate_password(self, value):
         if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError("Password galat hai.")
+            raise serializers.ValidationError("Incorrect password.")
         return value
 
     def validate_new_email(self, value):
         email = normalize_email(value)
         user = self.context["request"].user
         if email == user.email:
-            raise serializers.ValidationError("Ye aapki current email hi hai.")
-        # all_objects: soft-deleted users ki email bhi reserved hai
+            raise serializers.ValidationError("This is already your current email address.")
+        # all_objects: Email addresses of soft-deleted users are also reserved.
         if User.all_objects.filter(email__iexact=email).exists():
-            raise serializers.ValidationError("Is email se account pehle se maujood hai.")
+            raise serializers.ValidationError("An account with this email already exists.")
         return email
 
 
@@ -289,22 +289,22 @@ class ConfirmEmailChangeSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     def validate(self, attrs):
-        invalid = serializers.ValidationError({"token": "Link invalid ya expire ho gaya hai."})
+        invalid = serializers.ValidationError({"token": "The link is invalid or has expired."})
 
         try:
             payload = read_email_change_token(attrs["token"])
-        except signing.BadSignature:  # SignatureExpired bhi isi me aata hai
+        except signing.BadSignature:  # SignatureExpired is also included in this.
             raise invalid
 
         user = User.objects.filter(pk=payload.get("uid"), is_active=True).first()
-        # Email pehle hi badal chuki ho to purana link kaam nahi karega
+        # The old link will no longer work if the email address has already been changed.
         if user is None or user.email != payload.get("old"):
             raise invalid
 
         new_email = payload["new"]
         if User.all_objects.filter(email__iexact=new_email).exclude(pk=user.pk).exists():
             raise serializers.ValidationError(
-                {"token": "Ye email ab kisi aur account me use ho rahi hai."}
+                {"token": "This email address is already being used by another account."}
             )
 
         attrs["user"] = user
@@ -318,7 +318,7 @@ class DeleteAccountSerializer(serializers.Serializer):
 
     def validate_password(self, value):
         if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError("Password galat hai.")
+            raise serializers.ValidationError("Incorrect password.")
         return value
 
     def validate(self, attrs):
@@ -329,6 +329,6 @@ class DeleteAccountSerializer(serializers.Serializer):
             ).exclude(pk=user.pk)
             if not other_superusers.exists():
                 raise serializers.ValidationError(
-                    "Aap akhri superuser hain, isliye account delete nahi kar sakte."
+                    "You are the last remaining superuser, so your account cannot be deleted."
                 )
         return attrs

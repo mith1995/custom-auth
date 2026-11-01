@@ -1,7 +1,7 @@
 {% extends "authnest/email/base.html" %}
 {% block content %}
-  <h2>Aapki email badal di gayi hai</h2>
-  <p>Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},</p>
-  <p>Aapke account ki email <strong>{{ old_email }}</strong> se badalkar <strong>{{ new_email }}</strong> kar di gayi hai.</p>
-  <p>Agar ye badlav aapne nahi kiya, to turant "Forgot password" se password reset karein aur support se sampark karein.</p>
+  <h2>Your Email Address Has Been Changed</h2>
+  <p>Hello{% if user.first_name %} {{ user.first_name }}{% endif %},</p>
+  <p>The email address associated with your account has been changed from <strong>{{ old_email }}</strong> to <strong>{{ new_email }}</strong>.</p>
+  <p>If you did not make this change, please reset your password immediately using the "Forgot Password" option and contact support.</p>
 {% endblock %}

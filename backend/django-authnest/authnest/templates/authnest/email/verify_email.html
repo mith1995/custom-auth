@@ -1,12 +1,12 @@
 {% extends "authnest/email/base.html" %}
 {% block content %}
-  <h2>Email verify karein</h2>
-  <p>Namaste{% if user.first_name %} {{ user.first_name }}{% endif %},</p>
-  <p>Account chalu karne ke liye neeche button par click karein.</p>
+  <h2>Verify Your Email Address</h2>
+  <p>Hello{% if user.first_name %} {{ user.first_name }}{% endif %},</p>
+  <p>Click the button below to activate your account.</p>
   <p>
     <a href="{{ link }}" style="display:inline-block; padding:12px 20px; background:#2563eb; color:#ffffff; text-decoration:none; border-radius:6px;">
-      Email verify karein
+      Verify Email Address
     </a>
   </p>
-  <p>Ye link {{ expires_in_hours }} ghante me expire ho jayega. Agar aapne account nahi banaya, to is email ko ignore karein.</p>
+  <p>This link will expire in {{ expires_in_hours }} hours. If you did not create an account, please ignore this email.</p>
 {% endblock %}

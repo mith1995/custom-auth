@@ -30,7 +30,7 @@ def send_verification_email(user):
     token = make_email_verification_token(user)
     link = build_frontend_url(authnest_settings.VERIFY_EMAIL_PATH, token=token)
     send_templated_email(
-        subject = "Apna email verify karein",
+        subject = "Please verify your email address.",
         to_email = user.email,
         template = "verify_email",
         context = {
@@ -44,7 +44,7 @@ def send_password_reset_email(user):
     token = make_password_reset_token(user)
     link = build_frontend_url(authnest_settings.RESET_PASSWORD_PATH, token=token)
     send_templated_email(
-        subject="Password reset karein",
+        subject="Reset your password.",
         to_email=user.email,
         template="password_reset",
         context={
@@ -57,9 +57,9 @@ def send_password_reset_email(user):
 
 def send_password_changed_email(user):
     if not user.email:
-        return  # phone-only user ko email nahi jati
+        return  # Emails are not sent to phone-only users.
     send_templated_email(
-        subject="Aapka password badal gaya hai",
+        subject="Your password has been changed successfully.",
         to_email=user.email,
         template="password_changed",
         context={"user": user},
@@ -69,7 +69,7 @@ def send_email_change_email(user, new_email):
     token = make_email_change_token(user, new_email)
     link = build_frontend_url(authnest_settings.CONFIRM_EMAIL_CHANGE_PATH, token=token)
     send_templated_email(
-        subject="Nayi email confirm karein",
+        subject="Confirm your new email address.",
         to_email=new_email,
         template="email_change",
         context={
@@ -83,7 +83,7 @@ def send_email_change_email(user, new_email):
 
 def send_email_changed_notice(user, old_email, new_email):
     send_templated_email(
-        subject="Aapki email badal di gayi hai",
+        subject="Your email address has been changed successfully.",
         to_email=old_email,
         template="email_changed_notice",
         context={"user": user, "old_email": old_email, "new_email": new_email},
@@ -91,7 +91,7 @@ def send_email_changed_notice(user, old_email, new_email):
 
 def send_account_deleted_email(user, to_email):
     send_templated_email(
-        subject="Aapka account delete ho gaya hai",
+        subject="Your account has been deleted successfully.",
         to_email=to_email,
         template="account_deleted",
         context={"user": user, "permanent": not authnest_settings.SOFT_DELETE},

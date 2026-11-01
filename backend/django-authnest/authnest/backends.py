@@ -5,7 +5,7 @@ from .conf import authnest_settings
 from .utils import normalize_phone, normalize_email
 
 class AuthnestBackend(ModelBackend):
-    """Email / phone / username se login. Allowed methods settings se aate hain."""
+    """Login with email, phone, or username. Allowed login methods are configured in settings"""
 
     def authenticate(self, request, username = None, password = None, scope="admin", **kwargs):
         
@@ -16,7 +16,7 @@ class AuthnestBackend(ModelBackend):
         user = self._find_user(UserModel, username.strip(), scope)
         
         if user is None:
-            # User na mile tab bhi hash chalao, taaki response time se pata na chale
+            # Always perform password hashing, even if the user does not exist, to prevent timing-based user enumeration.
             UserModel().set_password(password)
             return None
 

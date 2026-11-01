@@ -96,5 +96,5 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.save(update_fields=["deleted_at", "is_active"])
 
     def hard_delete(self, using=None, keep_parents=False):
-        # Asli delete, jo Django ka original delete() chalata hai
+        # Permanent deletion, which calls Django's original delete() method.
         return super().delete(using=using, keep_parents=keep_parents)

@@ -65,7 +65,7 @@ def test_email_change_request_mails_the_new_address_only(auth_client, user, mail
     assert mailoutbox[0].to == ["new@example.com"]
     assert "/confirm-email-change" in mailoutbox[0].body
     user.refresh_from_db()
-    assert user.email == "user@example.com"  # abhi badli nahi
+    assert user.email == "user@example.com"  # It hasn't been changed yet.
 
 
 def test_email_change_token_carries_old_and_new_email(auth_client, user, mailoutbox):
@@ -77,7 +77,7 @@ def test_email_change_token_carries_old_and_new_email(auth_client, user, mailout
 
 
 def test_email_change_rejects_wrong_password(auth_client, user, mailoutbox):
-    response = request_change(auth_client, "new@example.com", password="galat")
+    response = request_change(auth_client, "new@example.com", password="wrong")
 
     assert response.status_code == 400
     assert "password" in response.json()
@@ -143,7 +143,7 @@ def test_full_flow_request_then_confirm(auth_client, api_client, user, mailoutbo
     request_change(auth_client, "new@example.com")
     token = extract_token(mailoutbox[0])
 
-    response = confirm(api_client, token)  # api_client login nahi hai, phir bhi chalna chahiye
+    response = confirm(api_client, token)  # It should work even if api_client is not logged in.
 
     assert response.status_code == 200
     assert response.json()["email"] == "new@example.com"
@@ -158,7 +158,7 @@ def test_confirm_sends_a_notice_to_the_old_address(auth_client, api_client, user
 
     assert len(mailoutbox) == 2
     assert mailoutbox[1].to == ["user@example.com"]
-    assert mailoutbox[1].subject == "Aapki email badal di gayi hai"
+    assert mailoutbox[1].subject == "Your email address has been changed successfully."
 
 
 def test_confirm_link_works_only_once(api_client, user):
@@ -230,7 +230,7 @@ def test_phone_only_user_can_add_an_email(api_client, mailoutbox):
     phone_user.refresh_from_db()
     assert phone_user.email == "added@example.com"
     assert phone_user.is_email_verified is True
-    assert len(mailoutbox) == 0  # purani email thi hi nahi, to notice nahi
+    assert len(mailoutbox) == 0  # There was no previous email address, so no notification was sent.
 
 
 def test_changing_email_does_not_log_the_user_out(api_client, user):
@@ -238,7 +238,7 @@ def test_changing_email_does_not_log_the_user_out(api_client, user):
 
     confirm(api_client, make_email_change_token(user, "new@example.com"))
 
-    AuthnestRefreshToken(tokens["refresh"])  # TokenError nahi aana chahiye
+    AuthnestRefreshToken(tokens["refresh"])  # TokenError should not be raised.
 
 
 # ======================= account delete =======================
@@ -252,7 +252,7 @@ def test_delete_account_only_accepts_post(auth_client):
 
 
 def test_delete_account_rejects_wrong_password(auth_client, user):
-    response = delete_account(auth_client, password="galat")
+    response = delete_account(auth_client, password="wrong")
 
     assert response.status_code == 400
     assert "password" in response.json()
@@ -279,8 +279,8 @@ def test_delete_account_sends_a_goodbye_mail(auth_client, user, mailoutbox):
 
     assert len(mailoutbox) == 1
     assert mailoutbox[0].to == ["user@example.com"]
-    assert mailoutbox[0].subject == "Aapka account delete ho gaya hai"
-    assert "ab login nahi ho sakega" in mailoutbox[0].body
+    assert mailoutbox[0].subject == "Your account has been deleted successfully."
+    assert "you can no longer log in" in mailoutbox[0].body
 
 
 def test_delete_account_clears_the_cookie_in_cookie_mode(auth_client):
@@ -334,7 +334,7 @@ def test_delete_account_is_permanent_when_soft_delete_is_off(auth_client, user, 
 
     assert response.status_code == 200
     assert not User.all_objects.filter(pk=user.pk).exists()
-    assert "hamesha ke liye" in mailoutbox[0].body
+    assert "permanently deleted" in mailoutbox[0].body
 
 
 def test_email_can_be_reused_after_a_permanent_delete(auth_client, api_client, settings):

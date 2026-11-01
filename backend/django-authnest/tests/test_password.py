@@ -127,7 +127,7 @@ def test_reset_sends_password_changed_notice(api_client, user, mailoutbox):
 
     assert len(mailoutbox) == 1
     assert mailoutbox[0].to == ["user@example.com"]
-    assert mailoutbox[0].subject == "Aapka password badal gaya hai"
+    assert mailoutbox[0].subject == "Your password has been changed successfully."
 
 
 def test_reset_does_not_log_the_user_in(api_client, user):
@@ -274,7 +274,7 @@ def test_change_password_success(auth_client, user, mailoutbox):
     assert user.check_password(NEW_PASSWORD)
     assert not user.check_password(PASSWORD)
     assert len(mailoutbox) == 1
-    assert mailoutbox[0].subject == "Aapka password badal gaya hai"
+    assert mailoutbox[0].subject == "Your password has been changed successfully."
 
 
 def test_change_password_rejects_wrong_old_password(auth_client, user):
